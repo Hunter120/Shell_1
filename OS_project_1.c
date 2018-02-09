@@ -1,6 +1,10 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include<dirent.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<unistd.h>
 
 
 //NOTES FOR TA/PROF
@@ -17,7 +21,16 @@
 #define buffersize 250
 char * cmdname, input_redirection, output_redirection, pipe_1, pipe_2, pipe_3, background;
 
+// checks to see if the string is a command
+	int BuiltInCommand(char *line)
+ {
+	if (strcmp(line, "exit") == 0 || strcmp(line, "cd") == 0 || strcmp(line, "echo") == 0 || strcmp(line, "etime") == 0 || strcmp(line, "io") == 0)
+		return 1;
+	else
+		return 0;
+ }
 
+// checks to see if the character is what we need
 	int isChar(char line) {
 
 	 if (line == '|' || line == '<' || line == '>' || line == '&' || line == '$' || line == '~')
@@ -38,19 +51,8 @@ char * cmdname, input_redirection, output_redirection, pipe_1, pipe_2, pipe_3, b
 	return line;
  }
 
-	char **resolve_paths(char **args) {
 
-        char **my_parse(char *line)
- {
-                char **args;
-		char *temp_line;
-
-		temp_line = parse_whitespace(temp_line);
-		args = parse_arguements(temp_line);
-
-
- }
-
+// gets each argument from the line
  char **parse_arguements(char *line)
  {
              	int i;
@@ -81,6 +83,7 @@ char * cmdname, input_redirection, output_redirection, pipe_1, pipe_2, pipe_3, b
                 return args;
  }
 
+// adds and removes whitespace accordingly
 	char *parse_whitespace(char *line)
  {
 		
@@ -129,30 +132,106 @@ char * cmdname, input_redirection, output_redirection, pipe_1, pipe_2, pipe_3, b
 }
 
 
-	int is_command(char **args, int i) {
 
-	//if (args[i] == arguement)
-	//	return 0;
-
-	//else if (args[i] == external command)
-	//	return 1;
-	
-	//else if (args[i] == "cd")
-	//	return 2;
-	
-	//else
-	//	return 3;
-
-}
+// checks the path of the comman and parses each item in the path
 	char **resolve_paths(char **args) {
-	
+
+	char **path_is;
+	path_is = (char **) malloc (sizeof(char **));	
+	char *temp;
+	temp = (char *) malloc (sizeof(char **));
 	int i;
-	for (i = 0; args[i] != NULL; i++) {
-		args[i] = expand_path(args[i], is_command(args, i));
+	int j = 0;
+	int k = 0;
+
+	if (!BuiltInCommand(args[0])) {
+		char *path = getenv("PATH");
+
+	for (i = 0; i < strlen(path); ++i)
+ {
+	if (path[i] != ':') {
+		temp[j] = path[i]; 
+		j++;
+		continue;
  }
-	return args;
+	else
+ {
+		path_is[k] = temp;
+		k++;
+		temp = (char *) malloc (sizeof(char **));
+		j = 0;
+		continue;	
+ }
+}
+}
+	return path_is;
 }
 
+// checks to see if there is a match to the command call within the pathname given
+	char *find_match(char **command_line, char **pathname) 
+ {
+	DIR* dirp;
+	struct dirent *dp;
+	int i, errno;
+	for (i = 0; pathname[i] != NULL; ++i)
+ {
+	dirp = opendir(pathname[i]);
+		while(dirp) {
+		errno = 0;
+	if ((dp = readdir(dirp)) != NULL) {
+		if (strcmp(dp->d_name, command_line[0]) == 0) {
+			closedir(dirp);
+			printf("A match was found");
+			return pathname[i];
+ }
+}
+
+		else {
+			if (errno = 0) {
+				closedir(dirp);
+				continue;
+ }
+	closedir(dirp);
+	printf("There were no matches in the directory");
+	return NULL;
+ }
+}
+}		
+}
+        char **my_parse(char *line)
+ {
+                char **args;
+                char *temp_line;
+
+                temp_line = parse_whitespace(temp_line);
+                args = parse_arguements(temp_line);
+
+
+ }
+
+//executes external processes
+void my_execute(char **cmd) {
+
+pid_t pid = fork();
+
+	if (pid == -1) 
+ {
+		printf("Error");
+		exit(1);
+ }
+
+	else if (pid == 0)
+ {
+		execv(cmd[0], cmd);
+		fprintf("Problem executing %s\n", cmd[0]);
+		exit(1);
+ }
+
+	else
+ {
+		waitpid(pid, &status, 0);
+ }
+}
 int main()
 {
         //char pointers for command line parsing
