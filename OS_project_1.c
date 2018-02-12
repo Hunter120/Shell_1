@@ -24,7 +24,7 @@ char * cmdname, input_redirection, output_redirection, pipe_1, pipe_2, pipe_3, b
 // checks to see if the string is a command
 	int BuiltInCommand(char *line)
  {
-	if (strcmp(line, "exit") == 0 || strcmp(line, "cd") == 0 || strcmp(line, "echo") == 0 || strcmp(line, "etime") == 0 || strcmp(line, "io") == 0)
+	if (strcmp(line, "exit") == 0 || strcmp(line, "echo") == 0 || strcmp(line, "etime") == 0 || strcmp(line, "io") == 0)
 		return 1;
 	else
 		return 0;
@@ -210,7 +210,7 @@ char * cmdname, input_redirection, output_redirection, pipe_1, pipe_2, pipe_3, b
  }
 
 //executes external processes
-void my_execute(char **cmd) {
+/*void my_execute(char **cmd) {
 
 pid_t pid = fork();
 
@@ -231,7 +231,7 @@ pid_t pid = fork();
  {
 		waitpid(pid, &status, 0);
  }
-}
+}*/
 int main()
 {
         //char pointers for command line parsing
